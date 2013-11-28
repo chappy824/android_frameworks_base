@@ -151,7 +151,6 @@ public class ActiveDisplayView extends FrameLayout {
     private long mPocketTime = 0;
     private LinearLayout.LayoutParams mOverflowLayoutParams;
     private KeyguardManager mKeyguardManager;
-    private KeyguardLock mKeyguardLock;
     private boolean mCallbacksRegistered = false;
 
     // user customizable settings
@@ -630,27 +629,15 @@ public class ActiveDisplayView extends FrameLayout {
     }
 
     private void handleShowNotificationView() {
-        if (mKeyguardLock == null) {
-            mKeyguardLock = mKeyguardManager.newKeyguardLock("active_display");
-            mKeyguardLock.disableKeyguard();
-        }
+        int activeDisplayVis = View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        setSystemUiVisibility(activeDisplayVis);
         setVisibility(View.VISIBLE);
-        // delay hiding system ui a bit because if the keyguard has not dismissed
-        // yet it will end up changing the visibility which we don't want
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mBar.disable(0xffffffff);
-            }
-        }, 100);
         registerSensorListener(mLightSensor);
     }
 
     private void handleHideNotificationView() {
-        if (mKeyguardLock != null) {
-            mKeyguardLock.reenableKeyguard();
-            mKeyguardLock = null;
-        }
         setVisibility(View.GONE);
         restoreBrightness();
         mWakedByPocketMode = false;
